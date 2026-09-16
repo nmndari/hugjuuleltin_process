@@ -69,6 +69,10 @@ __doc файл__ : https://docs.google.com/document/d/1Qht7lOpRGM3PbTTURU7Waoi6F
 
 ## Бүтээгдэхүүний backlog
 
+Бүтээгдэхүүний Backlog-ийг Google Sheets (https://docs.google.com/spreadsheets/d/1SVqEy0BkiJ6NejVOk7V7kBhurjooAqRewIouDOekrws/edit?usp=sharing) болон Github Project дээр үүсгэсэн.
+
+
+
 | ID | User Story | Priority | Notes |
 |:---:|---|:---:|:---:|
 | US_01 | Оршин суугчийн хувьд, би сар бүрийн СӨХ-ийн төлбөр болон төлсөн төлбөрийн түүхээ харахыг хүсэж байна, ингэснээр өөрийн төлбөрийн мэдээллээ хянах боломжтой болно. | High | Must have |
