@@ -1,1 +1,5 @@
-def greet(name):    message = "Сайн байна уу"    return f"{message}, {name}!"if __name__ == "__main__":    print(greet("World"))
+def greet(name):
+    message = "Сайн байна уу"
+    return f"{message}, {name}!"
+if __name__ == "__main__":
+    print(greet("World"))
