@@ -1,5 +1,5 @@
 def greet(name):
-    message = "Hello"
+    message = "Hi there"
     return f"{message}, {name}!"
 
 
