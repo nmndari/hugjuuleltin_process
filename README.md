@@ -169,3 +169,144 @@ Backlog-ийн бүх user story-г GitHub Project-ийн **Backlog** самба
 
 > ###  Sprint Goal
 > **"Оршин суугчдад СӨХ-ийн төлбөр, санхүүгийн зарцуулалт, хурлын мэдээллийг харах, СӨХ-ийн шийдвэрт онлайнаар санал өгөх болон СӨХ-ийн гишүүдэд зардлын мэдээлэл оруулах боломжийг бүрдүүлэх."**
+
+# Лаборатори 6: Git Branching, Merge Conflict
+
+## Зорилго
+
+1. Feature branch үүсгэж, ажиллаж, main руу нэгтгэх дадлага хийх
+2. Санаатайгаар merge conflict үүсгэж, шийдвэрлэх
+3. Pull Request үүсгэж, main руу нэгтгэх
+
+## Шаардлагатай хэрэгсэл
+
+- Git
+- GitHub (Pull Request)
+
+## Багийн гишүүд
+
+| Гишүүн | GitHub | Branch |
+|--------|--------|--------|
+| Хүн A: С. Азэаргал | azaan1134 | `feature/greeting` |
+| Хүн B: Б. Намуундарь | nmndari | `feature/greeting-namuun` |
+
+## Алхам алхмаар гүйцэтгэл
+
+### 0. Бэлтгэл
+
+Хоёулаа repository-г clone хийсэн:
+
+```bash
+git clone https://github.com/nmndari/hugjuuleltin_process.git
+cd hugjuuleltin_process
+```
+
+Хүн A conflict үүсгэх суурь файл `greeting.py`-г main руу нэмсэн (commit `c83aaa4`).
+
+
+### 1. Feature branch үүсгэх (хоёулаа тусдаа)
+
+Хоёулаа ижил суурь commit (`c83aaa4`) дээрээс тусдаа branch үүсгэсэн.
+
+**Хүн A:**
+
+```bash
+git checkout -b feature/greeting
+# greeting.py-ийн 2-р мөрийг өөрчилнө
+git commit -am "greeting.py file zasaw"
+git push -u origin feature/greeting
+```
+
+**Хүн B:**
+
+```bash
+git checkout -b feature/greeting-namuun c83aaa4
+# greeting.py-ийн 2-р мөрийг өөрчилнө
+git commit -am "Change greeting message (Namuun)"
+git push -u origin feature/greeting-namuun
+```
+
+### 2. Санаатайгаар conflict үүсгэх
+
+Хоёр хүн нэг файлын (`greeting.py`) нэг мөрийг (2-р мөр) өөр өөрөөр өөрчилсөн:
+
+| Гишүүн | Branch | 2-р мөр |
+|--------|--------|---------|
+| Хүн A | `feature/greeting` | `message = "Сайн байна уу"` |
+| Хүн B | `feature/greeting-namuun` | `message = "Hi there"` |
+
+Нэг branch main руу merge хийгдсэний дараа нөгөө branch conflict өгнө.
+
+### 3. Pull Request үүсгэх
+
+GitHub дээр **Pull requests → New pull request**:
+
+- Хүн A: `feature/greeting` → `main` (PR #14)
+- Хүн B: `feature/greeting-namuun` → `main` (PR #15)
+
+Тайлбар дээр юу өөрчилснөө бичсэн.
+
+### 4. Эхний PR-ийг merge хийх
+
+Хүн A-ийн PR #14-ийг **Merge pull request** дарж main руу merge хийсэн (commit `bd7e25d`). Үүний дараа Хүн B-ийн PR дээр GitHub *"This branch has conflicts that must be resolved"* гэж харуулсан.
+
+### 5. Merge conflict шийдвэрлэх
+
+Хүн B conflict-ийг өөрийн branch дээр local-д шийдсэн:
+
+```bash
+git checkout feature/greeting-namuun
+git pull --no-rebase origin main
+# Auto-merging greeting.py
+# CONFLICT (content): Merge conflict in greeting.py
+# Automatic merge failed; fix conflicts and then commit the result.
+```
+
+`greeting.py` нээхэд:
+
+```
+def greet(name):
+<<<<<<< HEAD
+    message = "Hi there"
+=======
+    message = "Сайн байна уу"
+>>>>>>> bd7e25d
+    return f"{message}, {name}!"
+```
+
+Хоёр гишүүн ярилцаж `"Сайн байна уу"` хувилбарыг үлдээхээр шийдсэн. Тэмдэглэгээг (`<<<<<<<`, `=======`, `>>>>>>>`) устгаад, файл ажиллаж байгааг шалгасан:
+
+```bash
+python3 greeting.py
+# Сайн байна уу, World!
+git add greeting.py
+git commit -m "Merge conflict zasaw"
+git push
+```
+
+Push хийсний дараа PR автоматаар шинэчлэгдэж, conflict арилсан.
+
+### 6. Хоёр дахь PR-ийг merge хийх ба эцсийн шалгалт
+
+Conflict шийдэгдсэний дараа Хүн B-ийн PR #15-ийг **Merge pull request** дарж main руу merge хийсэн.
+
+```bash
+git checkout main && git pull
+git log --oneline --graph --all
+```
+
+Хоёр branch хоёулаа main-д орсныг баталгаажуулсан.
+
+## Хүлээлгэн өгөх зүйл (deliverable)
+
+Repository: https://github.com/nmndari/hugjuuleltin_process
+
+- [x] 2 feature branch-ийн commit түүх (`feature/greeting`, `feature/greeting-namuun`)
+- [x] Conflict шийдсэн merge commit (`5ddfcc9`)
+- [x] 2 PR (merged төлөвтэй): #14, #15
+
+## Дүгнэлт
+
+Энэ лабораторийн ажлаар feature branch ашиглан бие даан ажиллах, merge conflict
+гарсан үед хэрхэн шийдэх, Pull Request ашиглан өөрчлөлтөө main руу
+нэгтгэх үйл явцыг практикаар сурсан.
