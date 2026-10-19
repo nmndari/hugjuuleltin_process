@@ -310,3 +310,71 @@ Repository: https://github.com/nmndari/hugjuuleltin_process
 Энэ лабораторийн ажлаар feature branch ашиглан бие даан ажиллах, merge conflict
 гарсан үед хэрхэн шийдэх, Pull Request ашиглан өөрчлөлтөө main руу
 нэгтгэх үйл явцыг практикаар сурсан.
+
+---
+
+# Лаборатори 7: GitHub Actions ашиглан CI Pipeline байгуулах
+
+## Зорилго
+
+1. GitHub Actions workflow файл бие даан бичих
+2. Push, Pull Request trigger дээр автомат build/test ажиллуулах
+3. CI pipeline-ийн амжилттай/амжилтгүй үр дүнг уншиж, тайлбарлах
+
+## Шаардлагатай хэрэгсэл
+
+- GitHub Actions
+- Python 3.11, pytest
+
+## Холбогдох файлууд
+
+| Файл | Тайлбар |
+|------|---------|
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI workflow: checkout → setup → install → test |
+| [`test_greeting.py`](test_greeting.py) | `greeting.py`-ийн үндсэн тестүүд |
+| [`requirements.txt`](requirements.txt) | Хамаарал (pytest) |
+| [`.gitignore`](.gitignore) | Кэш файлуудыг (`__pycache__/`, `.pytest_cache/`) хасах |
+
+- Pull Request: [#16](https://github.com/nmndari/hugjuuleltin_process/pull/16)
+- Actions: https://github.com/nmndari/hugjuuleltin_process/actions
+
+## Алхам алхмаар гүйцэтгэл
+
+### 1. Жишиг төсөл бэлдэх
+
+Repository-д байсан `greeting.py`-г төсөл болгон ашиглаж, `test_greeting.py`-д 2 үндсэн тест бичсэн. `feature/ci-pipeline` branch үүсгээд local дээр тест ажиллуулж `2 passed` гэж шалгасан.
+
+### 2–5. Workflow файл бичих
+
+`.github/workflows/ci.yml` файлд `on: [push, pull_request]` trigger-тэй, **checkout → setup → install → test** гэсэн 4 алхамтай workflow бичсэн. Энэ нь ямар ч branch руу push хийх болон Pull Request нээх/шинэчлэх бүрт pipeline-г автоматаар ажиллуулна.
+
+### 6. Push хийж, ажиллуулах
+
+Файлуудаа commit хийж `feature/ci-pipeline` branch-аа push хийгээд, PR #16 (`feature/ci-pipeline` → `main`) нээсэн. Actions таб дээр workflow push болон pull_request trigger тус бүр дээр автоматаар эхэлсэн.
+
+> **Тулгарсан асуудал:** Эхний push "token without `workflow` scope" алдаагаар татгалзагдсан. `.github/workflows/` доторх файлыг push хийхэд token-д `workflow` эрх шаардлагатай тул `repo` болон `workflow` эрхтэй шинэ classic token үүсгэж шийдсэн.
+
+### 7. Амжилттай үр дүн
+
+CI #1 (push) болон CI #2 (pull request) хоёулаа бүх алхмаа амжилттай (ногоон) дуусгасан.
+
+![CI амжилттай](lab07_screenshots/ci-success.png)
+
+### 8. Санаатайгаар унагаах
+
+`test_greeting.py`-д хүлээгдэж буй утгыг `"Hello, World!"` болгож буруу утга оруулаад push хийсэн. CI #3 (push) болон CI #4 (pull request) хоёулаа улаан (амжилтгүй) болсон.
+
+![CI амжилтгүй](lab07_screenshots/ci-fail.png)
+
+**Яагаад унасан бэ?** `greet("World")` функц `"Сайн байна уу, World!"` гэж буцаадаг, харин тест `"Hello, World!"` гэж хүлээж байсан. `Run tests` алхмын лог дээр `AssertionError` гарч, `1 failed, 1 passed` гэж харагдсан. pytest тест унасан тул тэгээс ялгаатай exit code буцааж, GitHub Actions `test` job-ийг амжилтгүй гэж тэмдэглэсэн. PR дээр "Some checks were not successful" гэж гарч, алдаатай код main руу орохоос сэргийлсэн.
+
+### 9. Засварлаж, merge хийх
+
+Тестийн утгыг `"Сайн байна уу, World!"` болгож буцааж засаад push хийхэд pipeline дахин ногоон болсон. Үүний дараа PR #16-г main руу merge хийсэн.
+
+## Дүгнэлт
+
+Энэ лабораторийн ажлаар GitHub Actions workflow бичиж, push болон Pull Request бүр дээр
+тестийг автоматаар ажиллуулдаг CI pipeline байгуулсан. Тест унах үед pipeline улаан болж,
+алдааны лог дээр яг аль тест, ямар утга зөрснийг харуулдаг тул алдааг merge хийхээс өмнө
+илрүүлэх боломжтойг практикаар харсан.
