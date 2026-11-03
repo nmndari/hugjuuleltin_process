@@ -378,3 +378,232 @@ CI #1 (push) болон CI #2 (pull request) хоёулаа бүх алхмаа 
 тестийг автоматаар ажиллуулдаг CI pipeline байгуулсан. Тест унах үед pipeline улаан болж,
 алдааны лог дээр яг аль тест, ямар утга зөрснийг харуулдаг тул алдааг merge хийхээс өмнө
 илрүүлэх боломжтойг практикаар харсан.
+
+# Лабораторийн ажил 9: Docker ашиглан веб аппликейшнийг контейнержуулах
+
+## Зорилго
+
+1. Dockerfile бие даан бичиж, Docker layer caching-ийн зарчмыг ашиглах.
+2. Docker image бүтээж, container ажиллуулах.
+3. Docker Compose ашиглан олон сервис зэрэг ажиллуулах боломжтой болох.
+
+## Шаардлагатай хэрэгсэл
+
+- Docker Desktop
+- Node.js 20
+- npm
+- Express.js
+- Visual Studio Code
+- Google Chrome
+
+## Төслийн бүтэц
+
+```text
+docker-web-lab/
+├── src/
+│   └── server.js
+├── node_modules/
+├── package.json
+├── package-lock.json
+├── Dockerfile
+├── .dockerignore
+└── lab9_screenshots/
+    ├── 01-running-web.png
+    ├── 02-docker-build.png
+    └── 03-docker-build.png
+```
+
+## Алхам алхмаар гүйцэтгэл
+
+### 1. Docker суулгасан эсэхийг шалгах
+
+Docker Desktop суулгаж, Docker CLI болон Docker Engine хэвийн ажиллаж байгаа эсэхийг шалгасан.
+
+```bash
+docker --version
+docker info
+```
+
+Docker-ийн хувилбар: `29.7.2`
+
+### 2. Жишээ веб аппликейшн бэлдэх
+
+Node.js болон Express.js ашиглан СӨХ-ийн удирдлагын веб аппликейшн хөгжүүлсэн.
+
+Аппликейшний үндсэн боломжууд:
+
+- СӨХ-ийн ерөнхий мэдээлэл, статистик харах
+- Нийт оршин суугч болон өрхийн мэдээлэл харуулах
+- Сарын орлого, төлбөрийн үлдэгдэл харах
+- Орлого, зарлагын тойм график харуулах
+- Төлбөрийн мэдээлэл харуулах
+- Хүсэлт, гомдлын мэдээлэл харуулах
+
+Express серверийг 3000 порт дээр ажиллуулахаар тохируулсан.
+
+```javascript
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+});
+```
+
+### 3. Dockerfile бичих
+
+Төслийн үндсэн хавтсанд `Dockerfile` үүсгэж, дараах заавруудыг зөв дарааллаар бичсэн.
+
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "src/server.js"]
+```
+
+Dockerfile-ийн тайлбар:
+
+| Заавар | Үүрэг |
+|---|---|
+| FROM | Node.js суурь image сонгох |
+| WORKDIR | Ажлын хавтас тохируулах |
+| COPY | Dependency файлуудыг хуулбарлах |
+| RUN | Шаардлагатай сангуудыг суулгах |
+| COPY | Аппликейшний эх кодыг хуулбарлах |
+| EXPOSE | 3000 портыг зарлах |
+| CMD | Аппликейшнийг ажиллуулах |
+
+Dependency файлуудыг эхэлж хуулж, `npm install` ажиллуулсны дараа эх кодыг хуулсан. Ингэснээр код өөрчлөгдсөн ч dependency-ийн layer-ийг дахин ашиглах боломжтой болсон.
+
+### 4. .dockerignore файл үүсгэх
+
+Docker build context-д шаардлагагүй файлуудыг оруулахгүй байхаар `.dockerignore` файл үүсгэсэн.
+
+```text
+node_modules
+npm-debug.log
+.git
+.DS_Store
+lab9_screenshots
+```
+
+`lab9_screenshots` хавтсыг нэмснээр screenshot зургууд build context-д орж, `COPY . .` алхмаар image дотор хуулагдахаас сэргийлсэн.
+
+### 5. Docker image бүтээх
+
+Дараах командаар Docker image бүтээсэн.
+
+```bash
+docker build -t myapp:1.0 .
+```
+
+Build амжилттай дуусаж, `myapp:1.0` нэртэй Docker image үүссэн.
+
+![Docker build](docker-web-lab/lab9_screenshots/02-docker-build.png)
+
+Үүссэн image-ийг шалгах:
+
+```bash
+docker images
+```
+
+### 6. Container ажиллуулах
+
+Үүсгэсэн image дээр үндэслэн container ажиллуулсан.
+
+```bash
+docker run -d -p 3000:3000 \
+  --name myapp-container \
+  myapp:1.0
+```
+
+Container ажиллаж байгаа эсэхийг шалгасан.
+
+```bash
+docker ps
+```
+
+Үр дүнд `myapp-container` container `Up` төлөвтэй ажиллаж, 3000 портыг амжилттай холбосон.
+
+Веб хөтөч дээр дараах хаягаар нээж шалгасан:
+
+```text
+http://localhost:3000
+```
+
+![Ажиллаж буй веб](docker-web-lab/lab9_screenshots/01-running-web.png)
+
+### 7. Container-ийн лог шалгах
+
+Container-ийн консолын гаралтыг харахын тулд:
+
+```bash
+docker logs myapp-container
+```
+
+Сервер амжилттай ассан үед дараах мэдээлэл гарсан.
+
+```text
+Server running at http://localhost:3000
+```
+
+### 8. Docker Layer Caching турших
+
+`src/server.js` файлд жижиг өөрчлөлт хийгээд image-ийг дахин бүтээсэн.
+
+```bash
+docker build -t myapp:1.3 .
+```
+
+Build output:
+
+```text
+CACHED [2/5] WORKDIR /app
+CACHED [3/5] COPY package*.json ./
+CACHED [4/5] RUN npm install
+       [5/5] COPY . .
+```
+
+`package.json` өөрчлөгдөөгүй тул `npm install` layer cache-ээс дахин ашиглагдсан. Зөвхөн эх код өөрчлөгдсөн тул сүүлийн `COPY . .` layer л дахин бүтээгдсэн. Үүний ачаар build 1.8 секундэд дууссан. Хэрэв Dockerfile-д `COPY . .`-г `npm install`-ээс өмнө бичсэн бол кодын өчүүхэн өөрчлөлт бүрт `npm install` дахин ажиллах байсан.
+
+![Layer caching](docker-web-lab/lab9_screenshots/03-docker-build.png)
+
+### 9. Шинэ image ашиглан container ажиллуулах
+
+Шинэ image ашиглахын тулд өмнөх container-ийг устгаж, шинэ container үүсгэсэн.
+
+```bash
+docker rm -f myapp-container
+```
+
+```bash
+docker run -d -p 3000:3000 \
+  --name myapp-container \
+  myapp:1.3
+```
+
+`docker ps` командаар шинэ container амжилттай ажиллаж байгааг шалгасан.
+
+### 10. Docker Compose
+
+Веб хуудас нь өгөгдлийн сан ашигладаггүй тул Docker Compose алхмыг хийгээгүй (заавар: «хэрэв Веб өгөгдлийн сан ашигладаг бол»).
+
+## Үр дүн
+
+- Node.js болон Express.js ашиглан СӨХ-ийн удирдлагын веб аппликейшн бүтээсэн.
+- Dockerfile бичиж, Docker image амжилттай үүсгэсэн.
+- Container ажиллуулж, веб аппликейшнийг `localhost:3000` хаягаар нээж шалгасан.
+- Docker layer caching-ийн ажиллагааг build output дээрээс шалгасан.
+- Container-ийн лог болон төлөвийг Docker командаар шалгасан.
+
+## Дүгнэлт
+
+Энэхүү лабораторийн ажлаар Docker ашиглан веб аппликейшнийг контейнержүүлэх үндсэн үйл ажиллагааг практикаар гүйцэтгэсэн. Dockerfile бичих, image бүтээх, container ажиллуулах болон Docker layer caching ашиглах зарчмуудыг сурсан.
+
+Мөн dependency болон application source code-ийг тусад нь хуулбарлах замаар build-ийн үр ашгийг нэмэгдүүлэх боломжтойг туршиж үзсэн.
