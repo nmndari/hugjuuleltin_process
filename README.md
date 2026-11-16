@@ -379,7 +379,7 @@ CI #1 (push) болон CI #2 (pull request) хоёулаа бүх алхмаа 
 алдааны лог дээр яг аль тест, ямар утга зөрснийг харуулдаг тул алдааг merge хийхээс өмнө
 илрүүлэх боломжтойг практикаар харсан.
 
-# Лабораторийн ажил 9: Docker ашиглан веб аппликейшнийг контейнержуулах
+# Лабораторийн ажил 8: Docker ашиглан веб аппликейшнийг контейнержуулах
 
 ## Зорилго
 
@@ -607,3 +607,88 @@ docker run -d -p 3000:3000 \
 Энэхүү лабораторийн ажлаар Docker ашиглан веб аппликейшнийг контейнержүүлэх үндсэн үйл ажиллагааг практикаар гүйцэтгэсэн. Dockerfile бичих, image бүтээх, container ажиллуулах болон Docker layer caching ашиглах зарчмуудыг сурсан.
 
 Мөн dependency болон application source code-ийг тусад нь хуулбарлах замаар build-ийн үр ашгийг нэмэгдүүлэх боломжтойг туршиж үзсэн.
+
+# Лаборатори 9 — Minikube орчинд Deployment, Service үүсгэх
+
+## Зорилго
+Minikube локал Kubernetes cluster эхлүүлэх, Deployment болон Service YAML файлыг бие даан бичиж хэрэгжүүлэх, `kubectl` командаар cluster-ийн байдлыг шалгах, мөн Self-healing механизмыг турших.
+
+## Ашигласан хэрэгсэл
+- macOS
+- Docker Desktop 29.9.2
+- Minikube v1.39.0 (`--driver=docker`)
+- kubectl v1.36.1
+- Kubernetes v1.37.0
+- Node.js / Express веб апп
+
+## Ажлын гүйцэтгэл
+
+### 1. Minikube cluster эхлүүлэх
+```bash
+minikube start --driver=docker
+minikube status
+kubectl get nodes
+kubectl cluster-info
+```
+Cluster амжилттай эхэлж, `minikube` node `Ready` төлөвтэй болсон.
+
+### 2. Image-ийг Minikube руу ачаалах
+```bash
+minikube image load myapp:2.0
+minikube image ls
+```
+Жагсаалтад `docker.io/library/myapp:2.0` харагдсан.
+
+### 3. Deployment үүсгэх
+`deployment.yaml` файлд `replicas: 3` гэж тохируулж, контейнерийн image-ийг `myapp:2.0`, портын утгыг `3000` гэж заасан.
+```bash
+kubectl apply -f deployment.yaml
+kubectl get deployments
+kubectl get pods
+```
+Deployment амжилттай үүсэж, 3 Pod бүгд `1/1 Running` төлөвт орсон.
+
+### 4. Service үүсгэх
+`service.yaml` файлд `NodePort` төрөл сонгож, Service-ийн `3000` портыг Pod-ийн `3000` порт руу чиглүүлэн, `nodePort: 30080` гэж тохируулсан.
+```bash
+kubectl apply -f service.yaml
+kubectl get services
+```
+`myapp-service` Service амжилттай үүсэж, `3000:30080/TCP` портоор холбогдсон.
+
+![Service үүсгэж, Deployment болон Pod-уудын төлөвийг шалгасан үр дүн](lab9_screenshots/01-service-deployment.png)
+
+### 5. Веб аппликейшнд хандах
+```bash
+minikube service myapp-service --url
+```
+Командын буцаасан локал URL-ийг браузераар нээж, веб аппликейшн ажиллаж байгааг шалгасан. macOS дээр Docker driver ашиглаж байгаа тул URL үүсгэсэн Terminal цонхыг нээлттэй байлгах шаардлагатай.
+
+### 6. Self-healing механизм турших
+Эхлээд ажиллаж байсан Pod-уудыг шалгасан.
+```bash
+kubectl get pods
+```
+Нэг Pod-ийг зориудаар устгасан.
+```bash
+kubectl delete pod <pod-name>
+kubectl get pods -w
+```
+Устгасан Pod-ийн оронд Deployment Controller шинэ Pod автоматаар үүсгэсэн. Дараах эцсийн жагсаалтаар нийт 3 Pod бүгд `1/1 Running` болсон нь батлагдсан.
+
+![Pod устгасны дараа Kubernetes шинэ Pod автоматаар үүсгэсэн үр дүн](lab9_screenshots/02-self-healing.png)
+
+## Туршилтын үр дүн
+| Туршилт | Үр дүн |
+|---|---|
+| Minikube cluster эхлүүлэх | Амжилттай; node `Ready` |
+| Docker image үүсгэх | `myapp:2.0` үүссэн |
+| Image-ийг Minikube-д ачаалах | Амжилттай |
+| Deployment | 3 replica; 3 Pod ажилласан |
+| Service | NodePort; `3000:30080/TCP` |
+| Веб апп руу хандах | Браузераар нээгдсэн |
+| Self-healing | Устгасан Pod-ийн оронд шинэ Pod автоматаар үүсэж, тоо 3 болсон |
+
+## Дүгнэлт
+Энэхүү лабораторийн ажлаар Docker image-ийг Minikube орчинд ачаалж, Kubernetes Deployment болон Service нөөцүүдийг YAML файлаар тодорхойлон хэрэгжүүллээ. Deployment-ийн `replicas: 3` тохиргоогоор веб аппликейшнийг гурван Pod хэлбэрээр ажиллуулж, NodePort Service ашиглан браузераас хандах боломж бүрдүүлсэн. Нэг Pod-ийг зориудаар устгахад Kubernetes автоматаар шинэ Pod үүсгэн нийт Pod-ийн тоог 3 болгон сэргээсэн. Ийнхүү Kubernetes-ийн Deployment удирдлага болон Self-healing механизмын ажиллагааг практик туршилтаар баталгаажууллаа.
+
