@@ -656,7 +656,7 @@ kubectl get services
 ```
 `myapp-service` Service амжилттай үүсэж, `3000:30080/TCP` портоор холбогдсон.
 
-![Service үүсгэж, Deployment болон Pod-уудын төлөвийг шалгасан үр дүн](lab9_screenshots/01-service-deployment.png)
+![Service үүсгэж, Deployment болон Pod-уудын төлөвийг шалгасан үр дүн](lab9_kubernetes/screenshots/01-service-deployment.png)
 
 ### 5. Веб аппликейшнд хандах
 ```bash
@@ -676,7 +676,7 @@ kubectl get pods -w
 ```
 Устгасан Pod-ийн оронд Deployment Controller шинэ Pod автоматаар үүсгэсэн. Дараах эцсийн жагсаалтаар нийт 3 Pod бүгд `1/1 Running` болсон нь батлагдсан.
 
-![Pod устгасны дараа Kubernetes шинэ Pod автоматаар үүсгэсэн үр дүн](lab9_screenshots/02-self-healing.png)
+![Pod устгасны дараа Kubernetes шинэ Pod автоматаар үүсгэсэн үр дүн](lab9_kubernetes/screenshots/02-self-healing.png)
 
 ## Туршилтын үр дүн
 | Туршилт | Үр дүн |
